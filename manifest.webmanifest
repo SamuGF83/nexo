@@ -1,0 +1,11 @@
+{
+  "name": "NEXO — Tu tiempo. Tu familia. Tu vida.",
+  "short_name": "NEXO",
+  "lang": "es",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f6f0",
+  "theme_color": "#54765d",
+  "description": "Planificación personal y familiar",
+  "icons": []
+}

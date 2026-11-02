@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#54765d">
+<meta name="description" content="NEXO: Tu tiempo. Tu familia. Tu vida.">
+<link rel="manifest" href="manifest.webmanifest">
+<title>NEXO</title>
+<style>
+:root{--forest:#54765d;--sage:#a9bda2;--pale:#e9efe5;--beige:#e9ddc8;--ivory:#f7f6f0;--ink:#26352a;--muted:#68766a;--line:#e3e6de}
+*{box-sizing:border-box}body{margin:0;background:var(--ivory);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:24px 20px 18px;background:var(--pale);border-radius:0 0 26px 26px}
+.top{display:flex;align-items:center;justify-content:space-between}.brand{font-weight:850;font-size:25px;letter-spacing:2px;color:var(--forest)}.tag{font-size:12px;color:var(--muted);margin-top:2px}
+main{max-width:760px;margin:auto;padding:18px 16px 100px}.hello{font-size:24px;font-weight:750;margin:5px 0}.sub{color:var(--muted);font-size:14px}
+.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 3px 12px #26352a08}
+.panel h2{font-size:17px;margin:0 0 12px}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--pale);border-radius:14px;padding:14px;min-height:90px}.tile b{display:block;margin:7px 0 3px}.tile small{color:var(--muted)}
+button{font:inherit;cursor:pointer;border:0}.primary{background:var(--forest);color:white;padding:12px 16px;border-radius:12px;font-weight:650}.ghost{background:var(--pale);color:var(--forest);padding:9px 12px;border-radius:10px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fffefa;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 4px calc(9px + env(safe-area-inset-bottom));z-index:5}
+nav button{background:none;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:58px}nav button span{font-size:20px}nav button.active{color:var(--forest);font-weight:750}
+.hidden{display:none}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.muted{color:var(--muted);font-size:13px}
+.progress{height:8px;background:var(--pale);border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:var(--forest);width:0}
+.checkgroup{margin:15px 0}.checkgroup h3{font-size:14px;margin:0 0 7px;color:var(--forest)}
+.check{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0f1ec;font-size:14px}.check input{accent-color:var(--forest);width:18px;height:18px;margin:0}
+input[type=text],input[type=date]{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;color:var(--ink)}
+.addrow{display:flex;gap:8px;margin-top:12px}.addrow input{flex:1;min-width:0}
+.event{padding:10px 0;border-bottom:1px solid #f0f1ec}.event:last-child{border:0}
+section h1{font-size:23px;margin:6px 0}.pill{display:inline-block;background:var(--pale);color:var(--forest);border-radius:99px;padding:5px 9px;font-size:12px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+@media(min-width:650px){main{padding-top:26px}.tiles{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="brand">NEXO</div><div class="tag">Tu tiempo. Tu familia. Tu vida.</div></div><span class="pill">Versión inicial</span></div></header>
+<main>
+<section id="home">
+ <div class="hello">Hola 👋</div><div class="sub" id="today"></div>
+ <div class="panel"><div class="row"><h2>Mi día</h2><span class="pill">Vista general</span></div><p class="muted">Tu espacio para consultar y organizar lo importante.</p>
+  <div class="tiles">
+   <div class="tile">📅<b>Agenda</b><small>Compromisos y horarios</small></div>
+   <div class="tile">👨‍👧‍👦<b>Familia</b><small>Actividades y convivencia</small></div>
+   <div class="tile">🏠<b>Hogar</b><small>Tareas domésticas</small></div>
+   <div class="tile">🌿<b>Ocio</b><small>Planes con y sin niños</small></div>
+   <div class="tile">💶<b>Finanzas</b><small>Presupuestos y gastos</small></div>
+   <div class="tile">🎯<b>Objetivos</b><small>Proyectos personales</small></div>
+  </div></div>
+ <div class="panel"><div class="row"><h2>Planificar mis próximos días</h2><span class="pill">Checklist</span></div><p class="muted">Revisa cada área antes de empezar la semana.</p><div id="homeProgress" class="muted"></div><div class="progress"><div class="bar" id="homeBar"></div></div><button class="primary" onclick="show('plan')">Abrir planificación →</button></div>
+ <div class="panel"><h2>Revisión semanal</h2><p class="muted">Reserva un momento cada domingo para preparar la semana siguiente. Podrás cambiar el día y la hora en una versión posterior.</p><b>Domingo por la tarde</b></div>
+</section>
+<section id="plan" class="hidden">
+ <h1>Planificar próximos días</h1><p class="sub">Checklist inicial. Marca lo que ya has revisado; el progreso se guarda en este dispositivo.</p>
+ <div class="panel"><div class="row"><h2>Tu revisión</h2><span class="pill" id="count">0%</span></div><div class="progress"><div class="bar" id="planBar"></div></div><div id="checks"></div>
+ <div class="addrow"><input id="newTask" type="text" placeholder="Añadir un aspecto a revisar"><button class="primary" onclick="addTask()">Añadir</button></div>
+ <p class="muted">Las categorías y tareas son editables en futuras iteraciones; esta versión permite añadir tareas personalizadas.</p></div>
+</section>
+<section id="calendar" class="hidden"><h1>Calendario</h1><p class="sub">Prepara compromisos y consulta fechas importantes.</p><div class="panel"><label class="muted" for="eventDate">Fecha</label><input id="eventDate" type="date"><div class="addrow"><input id="eventName" type="text" placeholder="Nuevo compromiso"><button class="primary" onclick="addEvent()">Añadir</button></div></div><div class="panel"><h2>Próximos compromisos</h2><div id="events"></div></div></section>
+<section id="family" class="hidden"><h1>Familia</h1><p class="sub">Perfiles independientes para cada hijo y una vista familiar conjunta.</p><div class="panel"><h2>Hijo mayor · 12 años</h2><p class="muted">Actividades, colegio, salud y convivencia.</p></div><div class="panel"><h2>Hija pequeña · 7 años</h2><p class="muted">Actividades, colegio, salud y convivencia.</p></div><div class="panel"><h2>Calendario de convivencia</h2><p class="muted">La planificación será flexible: podrás modificar días, horarios, vacaciones y cambios puntuales.</p></div></section>
+<section id="tasks" class="hidden"><h1>Tareas</h1><p class="sub">Organiza responsabilidades y rutinas del hogar.</p><div class="panel"><h2>Áreas previstas</h2><p>🧹 Limpieza y orden</p><p>🛒 Compras y recados</p><p>🍲 Comidas</p><p>🔧 Mantenimiento</p><p class="muted">La gestión recurrente y la asignación de tareas se incorporarán en siguientes versiones.</p></div></section>
+<section id="more" class="hidden"><h1>Más de NEXO</h1><div class="panel"><h2>🌿 Ocio e ideas sin pantallas</h2><p class="muted">Planes para los tres, papá e hijo y papá e hija; con filtros por coste y ubicación.</p></div><div class="panel"><h2>💶 Finanzas</h2><p class="muted">Presupuestos personales y familiares separados, registro manual e importación bancaria opcional.</p></div><div class="panel"><h2>🎯 Objetivos</h2><p class="muted">Metas y proyectos personales.</p></div><div class="panel"><h2>☁️ Sincronización</h2><p class="muted">Todavía no está conectada. Esta versión guarda checklist y compromisos en el almacenamiento local del navegador.</p></div></section>
+</main>
+<nav>
+<button class="active" data-page="home" onclick="show('home')"><span>⌂</span>Inicio</button>
+<button data-page="calendar" onclick="show('calendar')"><span>▦</span>Calendario</button>
+<button data-page="family" onclick="show('family')"><span>♡</span>Familia</button>
+<button data-page="tasks" onclick="show('tasks')"><span>✓</span>Tareas</button>
+<button data-page="more" onclick="show('more')"><span>☰</span>Más</button>
+</nav>
+<script>
+const defaults=[
+["Trabajo",["Revisar reuniones y compromisos","Anotar tareas y prioridades","Reservar tiempo para proyectos"]],
+["Mis hijos",["Revisar días de convivencia","Comprobar actividades y horarios","Organizar desplazamientos y recogidas","Preparar planes de ocio con ellos"]],
+["Hogar",["Distribuir tareas domésticas","Revisar compras y recados"]],
+["Personal y salud",["Reservar tiempo personal","Organizar ejercicio y descanso","Revisar citas y asuntos pendientes"]],
+["Ocio",["Planificar actividades familiares","Reservar tiempo para aficiones","Buscar algún plan especial"]],
+["Finanzas",["Revisar gastos previstos","Comprobar pagos pendientes","Revisar presupuestos"]]
+];
+let custom=JSON.parse(localStorage.getItem("nexoCustom")||"[]");
+let done=JSON.parse(localStorage.getItem("nexoDone")||"[]");
+let events=JSON.parse(localStorage.getItem("nexoEvents")||"[]");
+function allTasks(){return defaults.flatMap((g,i)=>g[1].map((t,j)=>({id:i+"-"+j,group:g[0],text:t}))).concat(custom)}
+function save(){localStorage.setItem("nexoDone",JSON.stringify(done));localStorage.setItem("nexoCustom",JSON.stringify(custom));localStorage.setItem("nexoEvents",JSON.stringify(events))}
+function renderChecks(){let html="";defaults.forEach((g,i)=>{html+=`<div class="checkgroup"><h3>${g[0]}</h3>`+g[1].map((t,j)=>{let id=i+"-"+j;return `<label class="check"><input type="checkbox" ${done.includes(id)?"checked":""} onchange="toggle('${id}',this.checked)"><span>${t}</span></label>`}).join("")+"</div>"});if(custom.length)html+='<div class="checkgroup"><h3>Mis tareas</h3>'+custom.map(t=>`<label class="check"><input type="checkbox" ${done.includes(t.id)?"checked":""} onchange="toggle('${t.id}',this.checked)"><span>${esc(t.text)}</span></label>`).join("")+"</div>";document.getElementById("checks").innerHTML=html;updateProgress()}
+function toggle(id,v){done=v?[...done,id]:done.filter(x=>x!==id);save();renderChecks()}
+function addTask(){let el=document.getElementById("newTask"),v=el.value.trim();if(!v)return;custom.push({id:"c-"+Date.now(),group:"Mis tareas",text:v});el.value="";save();renderChecks()}
+function updateProgress(){let n=allTasks().length,p=n?Math.round(done.length/n*100):0;document.getElementById("count").textContent=p+"%";document.getElementById("planBar").style.width=p+"%";document.getElementById("homeBar").style.width=p+"%";document.getElementById("homeProgress").textContent=done.length+" de "+n+" aspectos revisados"}
+function addEvent(){let name=document.getElementById("eventName").value.trim(),date=document.getElementById("eventDate").value;if(!name||!date)return;events.push({name,date});events.sort((a,b)=>a.date.localeCompare(b.date));save();document.getElementById("eventName").value="";renderEvents()}
+function renderEvents(){document.getElementById("events").innerHTML=events.length?events.map((e,i)=>`<div class="event row"><div><b>${esc(e.name)}</b><div class="muted">${e.date}</div></div><button class="ghost" onclick="removeEvent(${i})">Eliminar</button></div>`).join(""):'<p class="muted">Todavía no hay compromisos guardados.</p>'}
+function removeEvent(i){events.splice(i,1);save();renderEvents()}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function show(id){document.querySelectorAll("main section").forEach(s=>s.classList.toggle("hidden",s.id!==id));document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));window.scrollTo(0,0)}
+document.getElementById("today").textContent=new Intl.DateTimeFormat("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
+renderChecks();renderEvents();
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body></html>
