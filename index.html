@@ -132,6 +132,13 @@ function showAuth(message=""){
 }
 function showApp(){authScreen.classList.add("hidden");appShell.hidden=false;}
 function authSetupError(message){showAuth(message);document.getElementById("loginBtn").disabled=true;}
+async function verifyPlatformOwner(){
+ appShell.hidden=true;
+ const {data,error}=await nexoSupabase.rpc("is_platform_owner");
+ if(error){showAuth("No se pudo verificar el permiso de propietario. Acceso bloqueado por seguridad.");return false;}
+ if(data!==true){await nexoSupabase.auth.signOut();showAuth("Esta cuenta no tiene autorización de propietario para acceder a NEXO.");return false;}
+ showApp();return true;
+}
 (async function initNexoAuth(){
  const cfg=window.NEXO_SUPABASE_CONFIG;
  if(!cfg||!cfg.url||!cfg.publishableKey||cfg.publishableKey.includes("PEGA_AQUI")){
@@ -141,8 +148,12 @@ function authSetupError(message){showAuth(message);document.getElementById("logi
  nexoSupabase=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data:{session},error}=await nexoSupabase.auth.getSession();
  if(error){showAuth("No se pudo comprobar la sesión: "+error.message);return;}
- if(session)showApp();else showAuth();
- nexoSupabase.auth.onAuthStateChange((_event,newSession)=>{if(newSession)showApp();else showAuth();});
+ if(session)await verifyPlatformOwner();else showAuth();
+ nexoSupabase.auth.onAuthStateChange((_event,newSession)=>{
+  if(!newSession){showAuth();return;}
+  // Deja terminar el callback de Auth antes de llamar a RPC.
+  setTimeout(()=>{if(nexoSupabase)verifyPlatformOwner();},0);
+ });
 })();
 document.getElementById("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!nexoSupabase)return;
@@ -150,8 +161,9 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{
  const email=document.getElementById("loginEmail").value.trim();
  const password=document.getElementById("loginPassword").value;
  const {error}=await nexoSupabase.auth.signInWithPassword({email,password});
+ if(error){btn.disabled=false;btn.textContent="Iniciar sesión";authError.textContent="No se pudo iniciar sesión. Comprueba el correo y la contraseña.";return;}
+ await verifyPlatformOwner();
  btn.disabled=false;btn.textContent="Iniciar sesión";
- if(error)authError.textContent="No se pudo iniciar sesión. Comprueba el correo y la contraseña.";
 });
 document.getElementById("logoutBtn").addEventListener("click",async()=>{
  if(nexoSupabase)await nexoSupabase.auth.signOut();
