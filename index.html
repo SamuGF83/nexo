@@ -29,10 +29,36 @@ input[type=text],input[type=date]{width:100%;border:1px solid var(--line);border
 section h1{font-size:23px;margin:6px 0}.pill{display:inline-block;background:var(--pale);color:var(--forest);border-radius:99px;padding:5px 9px;font-size:12px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 @media(min-width:650px){main{padding-top:26px}.tiles{grid-template-columns:repeat(3,1fr)}}
-</style>
+
+.auth-wrap{max-width:440px;margin:8vh auto;padding:22px 18px}
+.auth-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 8px 28px #26352a0d}
+.auth-card h1{font-size:23px;margin:0 0 8px}.auth-card p{color:var(--muted);font-size:14px;line-height:1.5}
+.auth-card label{display:block;font-size:13px;font-weight:650;margin:14px 0 6px}
+.auth-card input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit}
+.auth-error{color:#a33b32;font-size:13px;min-height:20px;margin:10px 0}
+.auth-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#logoutBtn{font-size:12px;padding:8px 10px}
+
 </head>
 <body>
-<header><div class="top"><div><div class="brand">NEXO</div><div class="tag">Tu tiempo. Tu familia. Tu vida.</div></div><span class="pill">Versión inicial</span></div></header>
+<section id="authScreen" class="auth-wrap hidden">
+ <div class="auth-card">
+  <div class="brand">NEXO</div>
+  <p class="tag">Tu tiempo. Tu familia. Tu vida.</p>
+  <h1>Accede a tu espacio</h1>
+  <p>Inicia sesión con la cuenta autorizada para NEXO. En esta versión no hay registro público ni invitaciones.</p>
+  <form id="loginForm">
+   <label for="loginEmail">Correo electrónico</label>
+   <input id="loginEmail" type="email" autocomplete="username" required>
+   <label for="loginPassword">Contraseña</label>
+   <input id="loginPassword" type="password" autocomplete="current-password" required>
+   <div class="auth-error" id="authError" role="alert"></div>
+   <div class="auth-actions"><button class="primary" id="loginBtn" type="submit">Iniciar sesión</button></div>
+  </form>
+ </div>
+</section>
+<div id="appShell" hidden>
+<header><div class="top"><div><div class="brand">NEXO</div><div class="tag">Tu tiempo. Tu familia. Tu vida.</div></div><button class="ghost" id="logoutBtn" type="button">Cerrar sesión</button></div></header>
 <main>
 <section id="home">
  <div class="hello">Hola 👋</div><div class="sub" id="today"></div>
@@ -66,6 +92,9 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 <button data-page="tasks" onclick="show('tasks')"><span>✓</span>Tareas</button>
 <button data-page="more" onclick="show('more')"><span>☰</span>Más</button>
 </nav>
+</div><!-- appShell -->
+<script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const defaults=[
 ["Trabajo",["Revisar reuniones y compromisos","Anotar tareas y prioridades","Reservar tiempo para proyectos"]],
@@ -91,6 +120,41 @@ function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt
 function show(id){document.querySelectorAll("main section").forEach(s=>s.classList.toggle("hidden",s.id!==id));document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));window.scrollTo(0,0)}
 document.getElementById("today").textContent=new Intl.DateTimeFormat("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
 renderChecks();renderEvents();
+
+// Autenticación Supabase. No habilita registro público ni invitaciones.
+const authScreen=document.getElementById("authScreen");
+const appShell=document.getElementById("appShell");
+const authError=document.getElementById("authError");
+let nexoSupabase=null;
+function showAuth(message=""){
+ appShell.hidden=true;authScreen.classList.remove("hidden");authError.textContent=message;
+}
+function showApp(){authScreen.classList.add("hidden");appShell.hidden=false;}
+function authSetupError(message){showAuth(message);document.getElementById("loginBtn").disabled=true;}
+(async function initNexoAuth(){
+ const cfg=window.NEXO_SUPABASE_CONFIG;
+ if(!cfg||!cfg.url||!cfg.publishableKey||cfg.publishableKey.includes("PEGA_AQUI")){
+  authSetupError("Falta configurar la Publishable key en config.js.");return;
+ }
+ if(!window.supabase||!window.supabase.createClient){authSetupError("No se ha podido cargar el cliente de Supabase. Comprueba la conexión a Internet.");return;}
+ nexoSupabase=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ const {data:{session},error}=await nexoSupabase.auth.getSession();
+ if(error){showAuth("No se pudo comprobar la sesión: "+error.message);return;}
+ if(session)showApp();else showAuth();
+ nexoSupabase.auth.onAuthStateChange((_event,newSession)=>{if(newSession)showApp();else showAuth();});
+})();
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!nexoSupabase)return;
+ const btn=document.getElementById("loginBtn");btn.disabled=true;btn.textContent="Comprobando…";authError.textContent="";
+ const email=document.getElementById("loginEmail").value.trim();
+ const password=document.getElementById("loginPassword").value;
+ const {error}=await nexoSupabase.auth.signInWithPassword({email,password});
+ btn.disabled=false;btn.textContent="Iniciar sesión";
+ if(error)authError.textContent="No se pudo iniciar sesión. Comprueba el correo y la contraseña.";
+});
+document.getElementById("logoutBtn").addEventListener("click",async()=>{
+ if(nexoSupabase)await nexoSupabase.auth.signOut();
+});
 if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body></html>
